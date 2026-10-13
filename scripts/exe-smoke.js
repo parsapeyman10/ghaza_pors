@@ -20,13 +20,34 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'exe-test-'));
 const dbFile = path.join(tmp, 'exe.sqlite');
 const base = `http://127.0.0.1:${port}`;
 
+/** پیام را به‌صورت annotation قابل‌خواندن در GitHub نشان می‌دهد */
+function annotate(msg) {
+  const one = String(msg).replace(/\r?\n/g, '%0A').replace(/\]/g, '%5D').slice(0, 3500);
+  console.log('::error::' + one);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    try { fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '```\n' + String(msg) + '\n```\n'); } catch {}
+  }
+}
+
 (async () => {
   if (!fs.existsSync(exe)) {
     console.log('  - فایل اجرایی پیدا نشد، تست exe رد می‌شود:', exe);
     process.exit(0);
   }
   console.log('\n  exe:', exe);
-  const child = spawn(exe, ['--port', String(port), '--no-browser', '--db', dbFile], { cwd: path.dirname(path.resolve(exe)) });
+  let spawnErr = null;
+  try { fs.accessSync(exe, fs.constants.R_OK); } catch (e) { spawnErr = 'not readable: ' + e.message; }
+  if (process.platform !== 'win32') {
+    try { fs.accessSync(exe, fs.constants.X_OK); } catch (e) { spawnErr = 'not executable ( chmod +x لازم است ): ' + e.message; }
+  }
+  console.log('  size:', fs.statSync(exe).size, 'bytes', spawnErr ? '| ' + spawnErr : '');
+
+  const child = spawn(exe, ['--port', String(port), '--no-browser', '--db', dbFile], {
+    cwd: path.dirname(path.resolve(exe)),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, GHADA_NO_BROWSER: '1' },
+  });
+  child.on('error', (e) => { spawnErr = 'spawn error: ' + e.message; });
   let log = '';
   child.stdout.on('data', (c) => (log += c));
   child.stderr.on('data', (c) => (log += c));
@@ -43,10 +64,15 @@ const base = `http://127.0.0.1:${port}`;
   const checks = [];
   const check = async (name, fn) => {
     try { await fn(); checks.push('  ✓ ' + name); }
-    catch (e) { checks.push('  ✗ ' + name + ' — ' + e.message.split('\n')[0]); process.exitCode = 1; }
+    catch (e) {
+      checks.push('  ✗ ' + name + ' — ' + e.message.split('\n')[0]);
+      annotate('exe-smoke :: ' + name + ' :: ' + e.message.slice(0, 900) + (spawnErr ? ' :: ' + spawnErr : '') + ' :: log=' + log.slice(-700));
+      process.exitCode = 1;
+    }
   };
 
-  await check('exe بالا آمد و /api/health داد', () => assert.ok(up, 'سرور بالا نیامد:\n' + log.slice(-900)));
+  await check('exe بالا آمد و /api/health داد', () =>
+    assert.ok(up, 'سرور بالا نیامد (exit=' + child.exitCode + ')\n' + (spawnErr || '') + '\n' + log.slice(-900)));
   await check('بنر فارسی در کنسول چاپ شد', () => assert.ok(/دفترچه|دیتابیس/.test(log), log.slice(0, 200)));
   await check('صفحهٔ HTML از داخل exe خوانده می‌شود', async () => {
     const t = await (await fetch(base + '/')).text();
