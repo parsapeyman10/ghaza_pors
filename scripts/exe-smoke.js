@@ -14,7 +14,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const exe = process.argv[2] || (process.platform === 'win32' ? 'dist/GhazaPors.exe' : 'dist/GhazaPors-linux');
+const exeArg = process.argv[2] || (process.platform === 'win32' ? 'dist/GhazaPors.exe' : 'dist/GhazaPors-linux');
+const exe = path.resolve(exeArg); // مسیر مطلق: spawn با cwd دیگر وگرنه فایل را پیدا نمی‌کند
 const port = 20000 + Math.floor(Math.random() * 900);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'exe-test-'));
 const dbFile = path.join(tmp, 'exe.sqlite');
@@ -43,7 +44,7 @@ function annotate(msg) {
   console.log('  size:', fs.statSync(exe).size, 'bytes', spawnErr ? '| ' + spawnErr : '');
 
   const child = spawn(exe, ['--port', String(port), '--no-browser', '--db', dbFile], {
-    cwd: path.dirname(path.resolve(exe)),
+    cwd: path.dirname(exe),
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, GHADA_NO_BROWSER: '1' },
   });
