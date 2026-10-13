@@ -1,0 +1,37 @@
+{
+  "name": "ghaza-pors-directory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "اپ پرتابل دفترچهٔ شماره‌های داخلی — دیتابیس SQLite + جست‌وجو با پیشنهاد خودکار (فارسی، RTL، بدون نصب)",
+  "author": "ghaza_pors",
+  "license": "MIT",
+  "main": "server/main.js",
+  "bin": "server/main.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server/main.js",
+    "dev": "node server/main.js --no-browser",
+    "vendor": "node scripts/make-vendor.js",
+    "seed": "node scripts/seed.js",
+    "check": "node scripts/smoke.js && node scripts/ui-smoke.js",
+    "package": "pkg . --targets node22-win-x64,node22-linux-x64,node22-macos-x64,node22-macos-arm64 --out-path dist",
+    "package:win": "pkg . --targets node22-win-x64 --output dist/GhazaPors.exe",
+    "dist": "node scripts/make-dist.js",
+    "check:api": "node scripts/smoke.js",
+    "check:ui": "node scripts/ui-smoke.js"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*"
+    ],
+    "outputPath": "dist",
+    "compress": "GZip"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.5.0",
+    "jsdom": "^25.0.0",
+    "sql.js": "^1.12.0"
+  }
+}

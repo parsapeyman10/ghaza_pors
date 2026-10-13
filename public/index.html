@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<title>دفترچهٔ شماره‌های داخلی</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M16 7c-4 0-7 2.9-7 6.7 0 4.5 3.4 7.6 3.4 10.3h7.2c0-2.7 3.4-5.8 3.4-10.3C23 9.9 20 7 16 7z' fill='none' stroke='%235eead4' stroke-width='2'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30"><path d="M12.2 5.4c-3.4.9-5.9 3.9-5.9 7.6 0 2 .7 3.6 1.8 5.3.5.8.4 1.6-.2 2.9-.3.7-.5 1.4.2 1.9.6.4 1.3.2 2-.1 1.6-.6 3-.4 4.4.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M19.8 26.6c3.4-.9 5.9-3.9 5.9-7.6 0-2-.7-3.6-1.8-5.3-.5-.8-.4-1.6.2-2.9.3-.7.5-1.4-.2-1.9-.6-.4-1.3-.2-2 .1-1.6.6-3 .4-4.4-.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <h1 id="app-title">دفترچهٔ شماره‌های داخلی</h1>
+      <p id="app-subtitle">ثبت نام و شمارهٔ داخلی + جست‌وجو با پیشنهاد خودکار</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span class="chip" id="chip-count" title="تعداد رکورد در دیتابیس">۰ رکورد</span>
+    <span class="chip" id="chip-net" title="آدرس‌های دسترسی">…</span>
+    <button class="btn ghost" id="btn-pin" hidden>🔒 قفل ویرایش</button>
+    <details class="menu">
+      <summary class="btn ghost">ابزارها</summary>
+      <div class="menu-body">
+        <button class="btn line" id="btn-export">خروجی اکسل (CSV)</button>
+        <button class="btn line" id="btn-backup">دانلود فایل دیتابیس</button>
+        <button class="btn line" id="btn-restore">بازیابی از فایل دیتابیس</button>
+        <button class="btn line" id="btn-import">ورود دسته‌جمعی متن/اکسل</button>
+        <button class="btn line" id="btn-share">نمایش آدرس شبکه</button>
+      </div>
+    </details>
+  </div>
+</header>
+
+<main class="layout">
+  <!-- ================= جست‌وجو ================= -->
+  <section class="card search-card" aria-label="جست‌وجو">
+    <div class="card-head">
+      <h2>جست‌وجو</h2>
+      <kbd>Ctrl</kbd>+<kbd>K</kbd>
+    </div>
+
+    <div class="searchbox">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M15.8 15.8 20 20" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false"
+             placeholder="نام یا شمارهٔ داخلی را تایپ کنید…"
+             aria-label="جست‌وجوی نام یا شمارهٔ داخلی" role="combobox" aria-expanded="false" aria-controls="suggestions" />
+      <button class="clear" id="q-clear" title="پاک کردن" aria-label="پاک کردن عبارت">✕</button>
+      <ul id="suggestions" class="suggestions" role="listbox" aria-label="پیشنهادها"></ul>
+    </div>
+    <p class="hint" id="search-hint">با تایپ اولین حرف، نام‌های ذخیره‌شده به‌همراه شمارهٔ داخلی پیشنهاد می‌شود.</p>
+
+    <div class="result" id="result" hidden>
+      <div class="result-main">
+        <span class="result-label">یافت شد</span>
+        <h3 id="result-name">—</h3>
+        <div class="result-ext">
+          <span class="result-ext-label">داخلی</span>
+          <strong id="result-ext" dir="ltr">—</strong>
+        </div>
+        <p class="result-note" id="result-note"></p>
+      </div>
+      <div class="result-side">
+        <button class="btn primary" id="result-copy">کپی شماره</button>
+        <button class="btn line" id="result-edit">ویرایش</button>
+        <button class="btn danger-line" id="result-del">حذف</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ثبت / ویرایش ================= -->
+  <section class="card form-card" aria-label="ثبت شماره داخلی">
+    <div class="card-head">
+      <h2 id="form-title">ثبت شمارهٔ جدید</h2>
+      <span class="muted" id="form-mode"></span>
+    </div>
+
+    <form id="form" novalidate>
+      <label class="field">
+        <span class="field-label">نام و نام خانوادگی <b>*</b></span>
+        <input id="f-name" name="name" type="text" autocomplete="off" placeholder="مثلاً: زهرا محمدی" maxlength="120" />
+        <em class="error" data-for="name"></em>
+      </label>
+
+      <label class="field">
+        <span class="field-label">شمارهٔ تلفن داخلی <b>*</b></span>
+        <input id="f-ext" name="ext" type="text" inputmode="numeric" autocomplete="off" placeholder="مثلاً: ۲۳۴۵" maxlength="24" dir="ltr" />
+        <em class="error" data-for="ext"></em>
+      </label>
+
+      <label class="field">
+        <span class="field-label">توضیحات <i>(اختیاری)</i></span>
+        <input id="f-note" name="note" type="text" autocomplete="off" placeholder="مثلاً: طبقهٔ دوم — واحد مالی" maxlength="300" />
+        <em class="error" data-for="note"></em>
+      </label>
+
+      <div class="form-actions">
+        <button class="btn primary" type="submit" id="f-save">ذخیره در دیتابیس</button>
+        <button class="btn ghost" type="button" id="f-reset">پاک کردن فرم</button>
+        <button class="btn ghost" type="button" id="f-cancel" hidden>انصراف از ویرایش</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<!-- ================= لیست ================= -->
+<section class="card list-card" aria-label="فهرست ثبت‌شده‌ها">
+  <div class="card-head list-head">
+    <h2>فهرست ثبت‌شده‌ها <span class="pill" id="list-count">۰</span></h2>
+    <div class="list-tools">
+      <input id="list-filter" type="search" placeholder="فیلتر فهرست…" autocomplete="off" />
+      <select id="sort" aria-label="ترتیب">
+        <option value="name">ترتیب: نام</option>
+        <option value="ext">ترتیب: شمارهٔ داخلی</option>
+        <option value="new">ترتیب: تازه‌ترین</option>
+      </select>
+      <button class="btn ghost" id="btn-refresh" title="به‌روزرسانی">↻</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="table">
+      <thead>
+        <tr><th class="num">#</th><th>نام و نام خانوادگی</th><th class="ext-col">داخلی</th><th class="note-col">توضیحات</th><th class="ops-col">عملیات</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty">
+      <p><strong>هنوز رکوردی ثبت نشده است.</strong></p>
+      <p>از فرم «ثبت شمارهٔ جدید» استفاده کنید یا با «ابزارها ← ورود دسته‌جمعی» فهرست اکسل را وارد کنید.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>دیتابیس: فایل SQLite کنار برنامه · <code id="foot-db">data/dahili.sqlite</code></span>
+  <span id="foot-meta"></span>
+</footer>
+
+<!-- ================= گفت‌وگوها ================= -->
+<div class="overlay" id="dlg" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+    <h3 id="dlg-title">عنوان</h3>
+    <div class="dlg-body" id="dlg-body"></div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="dlg-cancel">بستن</button>
+      <button class="btn primary" id="dlg-ok">تأیید</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="file-restore" accept=".sqlite,.db,.sqlite3" hidden />
+
+<script src="/app.js"></script>
+</body>
+</html>

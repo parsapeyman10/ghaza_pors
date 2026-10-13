@@ -1,0 +1,55 @@
+name: ساخت فایل پرتابل (exe)
+
+# با هر push روی تگ v* یا اجرای دستی، فایل‌های اجرایی پرتابل ساخته و
+# روی Releases قرار می‌گیرد (نیازی به نصب هیچ چیزی روی کامپیوتر شما نیست).
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: نصب وابستگی‌ها (فقط برای build)
+        run: npm ci
+
+      - name: اطمینان از به‌روز بودن موتور SQLite داخل server/vendor
+        run: node scripts/make-vendor.js
+
+      - name: تست‌ها
+        run: npm run check
+
+      - name: ساخت فایل‌های اجرایی
+        run: |
+          npx pkg . --targets node22-win-x64      --output dist/GhazaPors.exe
+          npx pkg . --targets node22-linux-x64    --output dist/GhazaPors-linux
+          npx pkg . --targets node22-macos-x64    --output dist/GhazaPors-mac
+
+      - name: ساخت پک‌های پرتابل (ZIP)
+        run: node scripts/make-dist.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-app
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: انتشار روی Releases (فقط با تگ)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          body: |
+            فایل پرتابل دفترچهٔ شماره‌های داخلی.
+            کافی است ZIP را دانلود و در یک پوشه باز کنید و `start.bat` (یا GhazaPors.exe) را اجرا کنید.
