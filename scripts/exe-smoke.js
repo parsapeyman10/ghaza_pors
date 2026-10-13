@@ -14,6 +14,16 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const until = async (fn, ms = 4000, step = 80) => {
+  const t0 = Date.now();
+  for (;;) {
+    let v = false;
+    try { v = await fn(); } catch { v = false; }
+    if (v) return true;
+    if (Date.now() - t0 > ms) return false;
+    await sleep(step);
+  }
+};
 const exeArg = process.argv[2] || (process.platform === 'win32' ? 'dist/GhazaPors.exe' : 'dist/GhazaPors-linux');
 const exe = path.resolve(exeArg); // مسیر مطلق: spawn با cwd دیگر وگرنه فایل را پیدا نمی‌کند
 const port = 20000 + Math.floor(Math.random() * 900);
@@ -95,8 +105,9 @@ function annotate(msg) {
     const d2 = await (await fetch(base + '/api/search?q=2345')).json();
     assert.strictEqual(d2.items[0].name, 'زهرا محمدی', 'رقم لاتین هم باید پیدا کند');
   });
-  await check('فایل دیتابیس کنار مسیر درخواستی ساخته شد (SQLite واقعی)', () => {
-    assert.ok(fs.existsSync(dbFile), dbFile + ' وجود ندارد');
+  await check('فایل دیتابیس کنار مسیر درخواستی ساخته شد (SQLite واقعی)', async () => {
+    const seen = await until(() => fs.existsSync(dbFile) && fs.statSync(dbFile).size > 3000, 5000);
+    assert.ok(seen, dbFile + ' در مهلت مقرر ساخته نشد');
     assert.strictEqual(fs.readFileSync(dbFile).slice(0, 15).toString('latin1'), 'SQLite format 3');
   });
   await check('خروجی CSV', async () => {

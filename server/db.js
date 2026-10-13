@@ -80,6 +80,10 @@ class PhoneBook {
     pb.bumpMeta(); // فقط ثبت نسخهٔ اسکیما
     pb.version = Number(pb.getMeta('version') || 0);
     pb.ready = true;
+    if (initialSize === 0) {
+      // فایل تازه ساخته شده: همان لحظه روی دیسک بنویس تا دیتابیس (و بکاپ‌گیری از آن) از اولین اجرا موجود باشد
+      await pb.flush();
+    }
     return pb;
   }
 
