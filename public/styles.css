@@ -74,6 +74,9 @@ kbd { font-family: var(--mono); font-size: 10.5px; border: 1px solid var(--line)
 #q { width: 100%; padding: 14px 44px 14px 40px; border-radius: 13px; border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 55%, var(--card)); font-size: 16px; outline: none }
 #q:focus { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent) }
 #q::placeholder { color: color-mix(in srgb, var(--muted) 80%, transparent) }
+#q::-webkit-search-cancel-button, #q::-webkit-search-decoration { -webkit-appearance: none; display: none } /* پاک‌کنندهٔ خود مرورگر نیاید */
+#chip-net { cursor: pointer }
+#chip-net:hover { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)) }
 .clear { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted);
   cursor: pointer; border-radius: 8px; padding: 4px 7px; font-size: 13px; opacity: 0; transition: .15s }
 .clear:hover { background: var(--danger-soft); color: var(--danger) }

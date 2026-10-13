@@ -432,7 +432,8 @@ async function boot() {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); qEl.select(); qEl.focus(); renderSuggestions(state.sugg); }
     if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); qEl.focus(); }
   });
-  $$('details.menu > summary').forEach((s) => (s.onclick = () => setTimeout(() => $$('details.menu').forEach((d) => { if (d !== s.parentElement) d.open = false; }), 0)));
+  // منوی «ابزارها»: بعد از زدن هر دکمه بسته شود
+  $$('details.menu').forEach((d) => d.addEventListener('click', (e) => { if (e.target.closest('.btn')) setTimeout(() => (d.open = false), 120); }));
 
   await loadList();
   const h = await api('/api/health');
