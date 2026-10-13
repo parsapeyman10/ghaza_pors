@@ -20,7 +20,8 @@
     "package:win": "pkg . --targets node22-win-x64 --output dist/GhazaPors.exe",
     "dist": "node scripts/make-dist.js",
     "check:api": "node scripts/smoke.js",
-    "check:ui": "node scripts/ui-smoke.js"
+    "check:ui": "node scripts/ui-smoke.js",
+    "check:exe": "node scripts/exe-smoke.js"
   },
   "pkg": {
     "assets": [
