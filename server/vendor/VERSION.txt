@@ -1,0 +1,1 @@
+sql.js 1.12.0 | wasm 652953 bytes

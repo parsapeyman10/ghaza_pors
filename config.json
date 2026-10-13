@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "دفترچهٔ شماره‌های داخلی",
+    "subtitle": "ثبت نام و شمارهٔ داخلی + جست‌وجو با پیشنهاد خودکار"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8787,
+    "openBrowser": true
+  },
+  "database": {
+    "file": "data/dahili.sqlite"
+  },
+  "security": {
+    "editPin": ""
+  },
+  "ui": {
+    "listLimit": 500,
+    "suggestLimit": 12,
+    "showLanAddress": true
+  }
+}

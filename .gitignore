@@ -1,0 +1,10 @@
+node_modules/
+dist/
+data/*.sqlite
+data/*.sqlite.lock
+data/*.tmp
+data/*.broken-*
+*.log
+.DS_Store
+.pkg-cache/
+coverage/
